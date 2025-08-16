@@ -778,7 +778,7 @@ private:
    vk::PhysicalDevice mPhysDevice;
    vk::Device mDevice;
    vk::Queue mQueue;
-   vk::DispatchLoaderDynamic mVkDynLoader;
+   vk::detail::DispatchLoaderDynamic mVkDynLoader;
    vk::CommandPool mCommandPool;
    vk::Sampler mBlankSampler;
    vk::Image mBlankImage;
