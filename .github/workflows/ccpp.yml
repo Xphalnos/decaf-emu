@@ -61,15 +61,10 @@ jobs:
       run: |
         mkdir "C:\\VulkanSDK"
         cd "C:\\VulkanSDK"
-        Invoke-WebRequest "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe?u=" -OutFile "VulkanSDK.exe"
-        Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("in --al --da --ao --confirm-command");
-        cd "C:\\VulkanSDK\\${{ env.VULKAN_VERSION }}"
-        Remove-Item -Force -Recurse Helpers
-        Remove-Item -Force -Recurse Templates
-        Remove-Item -Force maintenancetool.exe
-        Remove-Item -Force Bin\\VkLayer*
-        Remove-Item -Force Lib\\shaderc*
-        dir
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$ver/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe" -OutFile VulkanSDK.exe
+        echo Downloaded
+        .\VulkanSDK.exe --root C:\VulkanSDK  --accept-licenses --default-answer --confirm-command install
 
     - name: Load Cached Qt
       id: cache-qt-windows
@@ -146,7 +141,7 @@ jobs:
       run: |
         cd build
         wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-focal.list http://packages.lunarg.com/vulkan/lunarg-vulkan-focal.list
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
         sudo apt-add-repository ppa:cginternals/ppa
         sudo apt-get update
         sudo apt-get install -y cmake ccache vulkan-sdk python3-setuptools mesa-common-dev libglu1-mesa-dev ninja-build libcurl4-openssl-dev libsdl2-dev libssl-dev zlib1g-dev libuv1-dev libc-ares-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
