@@ -64,7 +64,7 @@ jobs:
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe" -OutFile VulkanSDK.exe
         echo Downloaded
-        .\VulkanSDK.exe --root C:\VulkanSDK  --accept-licenses --default-answer --confirm-command install
+        .\VulkanSDK.exe --root C:\VulkanSDK --y --accept-licenses --default-answer --confirm-command install
 
     - name: Load Cached Qt
       id: cache-qt-windows
@@ -151,7 +151,7 @@ jobs:
           sudo apt-get install -y clang-${{ env.VERSION }}
         fi
         pip3 install wheel
-        pip3 install aqtinstall
+        pip3 install install-qt
         python3 -m aqt install ${{ env.QT_VERSION }} linux desktop
         PELFVER=0.12
         curl -sSfLO https://github.com/NixOS/patchelf/releases/download/${PELFVER}/patchelf-${PELFVER}.tar.bz2
