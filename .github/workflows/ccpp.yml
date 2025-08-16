@@ -62,7 +62,7 @@ jobs:
         mkdir "C:\\VulkanSDK"
         cd "C:\\VulkanSDK"
         $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$ver/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe" -OutFile VulkanSDK.exe
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe" -OutFile VulkanSDK.exe
         echo Downloaded
         .\VulkanSDK.exe --root C:\VulkanSDK  --accept-licenses --default-answer --confirm-command install
 
@@ -117,7 +117,7 @@ jobs:
       OS: ubuntu-22.04
       MSVC: msvc2019_64
       COMPILER: gcc
-      VERSION: 13.4
+      VERSION: 13
       QT_VERSION: 5.15.17
 
     steps:
