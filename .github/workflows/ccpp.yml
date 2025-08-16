@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   windows-build:
-    runs-on: windows-2019
+    runs-on: windows-2025
     strategy:
       fail-fast: false
 
@@ -12,14 +12,14 @@ jobs:
       VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite'
       VCPKG_BUILD_TYPE: 'release'
       VCPKG_ROOT: '${{github.workspace}}/libraries/vcpkg'
-      OS: windows-2019
+      OS: windows-2025
       MSVC: msvc2019_64
       COMPILER: cl
-      VULKAN_VERSION: 1.3.211.0
+      VULKAN_VERSION: 1.4.313.2
       QT_VERSION: 5.15.0
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
       with:
         submodules: true
 
@@ -50,7 +50,7 @@ jobs:
 
     - name: Load Cached Vulkan SDK
       id: cache-vulkan-windows
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: C:/VulkanSDK/${{ env.VULKAN_VERSION }}
         key: ${{ runner.os }}-${{ env.VULKAN_VERSION }}
@@ -61,20 +61,12 @@ jobs:
       run: |
         mkdir "C:\\VulkanSDK"
         cd "C:\\VulkanSDK"
-        Invoke-WebRequest "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows/VulkanSDK-${{ env.VULKAN_VERSION }}-Installer.exe?u=" -OutFile "VulkanSDK.exe"
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows/vulkansdk-windows-X64-${{ env.VULKAN_VERSION }}.exe" -OutFile "VulkanSDK.exe"
         Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("in --al --da --ao --confirm-command");
-        cd "C:\\VulkanSDK\\${{ env.VULKAN_VERSION }}"
-        Remove-Item -Force -Recurse Demos
-        Remove-Item -Force -Recurse Templates
-        Remove-Item -Force -Recurse Tools
-        Remove-Item -Force maintenancetool.exe
-        Remove-Item -Force Bin\\VkLayer*
-        Remove-Item -Force Lib\\shaderc*
-        dir
 
     - name: Load Cached Qt
       id: cache-qt-windows
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: C:/Qt/${{ env.QT_VERSION }}/${{ env.MSVC }}
         key: ${{ runner.os }}-qt-${{ env.QT_VERSION }}-${{ env.MSVC }}
@@ -86,7 +78,7 @@ jobs:
         mkdir "C:\\Qt"
         cd "C:\\Qt"
         pip install aqtinstall
-        cmd /c 'python 2>&1' -m aqt install ${{ env.QT_VERSION }} windows desktop win64_${{ env.MSVC }}
+        cmd /c 'python 2>&1' -m aqt install-qt windows desktop ${{ env.QT_VERSION }} win64_${{ env.MSVC }}
         dir
 
     - name: Setup Environment
@@ -112,7 +104,7 @@ jobs:
         path: build/install
 
   ubuntu-build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
 
@@ -120,19 +112,19 @@ jobs:
       VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite'
       VCPKG_BUILD_TYPE: 'release'
       VCPKG_ROOT: '${{github.workspace}}/libraries/vcpkg'
-      OS: ubuntu-20.04
+      OS: ubuntu-22.04
       MSVC: msvc2019_64
       COMPILER: gcc
-      VERSION: 10
+      VERSION: 12
       QT_VERSION: 5.15.0
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
       with:
         submodules: true
 
     - name: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
         key: build-ccache-${{github.run_id}}
@@ -147,7 +139,7 @@ jobs:
       run: |
         cd build
         wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-focal.list http://packages.lunarg.com/vulkan/lunarg-vulkan-focal.list
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
         sudo apt-add-repository ppa:cginternals/ppa
         sudo apt-get update
         sudo apt-get install -y cmake ccache vulkan-sdk python3-setuptools mesa-common-dev libglu1-mesa-dev ninja-build libcurl4-openssl-dev libsdl2-dev libssl-dev zlib1g-dev libuv1-dev libc-ares-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
@@ -158,7 +150,7 @@ jobs:
         fi
         pip3 install wheel
         pip3 install aqtinstall
-        python3 -m aqt install ${{ env.QT_VERSION }} linux desktop
+        python3 -m aqt install-qt linux desktop ${{ env.QT_VERSION }}
         PELFVER=0.12
         curl -sSfLO https://github.com/NixOS/patchelf/releases/download/${PELFVER}/patchelf-${PELFVER}.tar.bz2
         tar xvf patchelf-${PELFVER}.tar.bz2
@@ -196,13 +188,13 @@ jobs:
 
   create-release:
     needs: [windows-build, ubuntu-build]
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v5
 
       - name: Upload
         shell: bash
@@ -218,8 +210,8 @@ jobs:
             (cd $(basename $f) && zip -r ../artifacts/$(basename $f).zip *)
           done
           ls -al artifacts/
-          wget -c https://github.com/tcnksm/ghr/releases/download/v0.14.0/ghr_v0.14.0_linux_amd64.tar.gz
-          tar xfv ghr_v0.14.0_linux_amd64.tar.gz
-          ghr_v0.14.0_linux_amd64/ghr -u ${{ github.repository_owner }} -r decaf-emu -recreate -n 'decaf-emu CI builds' -b "Corresponding commit: ${{ github.sha }}" release artifacts/
+          wget -c https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
+          tar xfv ghr_v0.17.0_linux_amd64.tar.gz
+          ghr_v0.17.0_linux_amd64/ghr -u ${{ github.repository_owner }} -r decaf-emu -recreate -n 'decaf-emu CI builds' -b "Corresponding commit: ${{ github.sha }}" release artifacts/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
