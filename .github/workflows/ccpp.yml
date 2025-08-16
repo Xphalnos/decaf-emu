@@ -16,7 +16,7 @@ jobs:
       MSVC: msvc2019_64
       COMPILER: cl
       VULKAN_VERSION: 1.4.313.0
-      QT_VERSION: 5.15.17
+      QT_VERSION: 5.15.0
 
     steps:
     - uses: actions/checkout@v5
@@ -118,7 +118,7 @@ jobs:
       MSVC: msvc2019_64
       COMPILER: gcc
       VERSION: 13
-      QT_VERSION: 5.15.17
+      QT_VERSION: 5.15.0
 
     steps:
     - uses: actions/checkout@v5
